@@ -66,12 +66,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       conversation.push({
         role: 'user', 
         content: [
-                {"type": "text", "text": "What's in this image?"},
+                {type: "text", text: "What's in this image?"},
                 {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": {imageUrl},
-                        "detail": "high",
+                    type: "image_url",
+                    image_url: {
+                        url: {imageUrl},
+                        detail: "high",
                     },
                 },
             ],
