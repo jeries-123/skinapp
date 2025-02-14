@@ -65,8 +65,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Including image with high detail specification
       conversation.push({
         role: 'user', 
-        content: `Here is the radiology image for analysis: ${imageUrl}`,
-        detail: "high"
+        content: [
+                {"type": "text", "text": "What's in this image?"},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": {imageUrl},
+                        "detail": "high",
+                    },
+                },
+            ],
       });
     }
 
@@ -78,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const openai = new OpenAIApi(configuration);
 
     const response = await openai.createChatCompletion({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: lastTwoMessages,
       max_tokens: 300,
     });
