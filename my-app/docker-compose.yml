@@ -11,3 +11,5 @@ services:
       - .env.local
     volumes:
       - .:/app
+      - ./uploads:/app/public/uploads
+    command: npm run dev

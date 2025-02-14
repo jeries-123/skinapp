@@ -29,6 +29,7 @@ export default function Chatbot() {
 
   // Handle File Upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Image selected:", e.target.files?.[0]);
     const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(file);
