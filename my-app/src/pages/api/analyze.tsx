@@ -6,7 +6,7 @@ import path from "path";
 export const config = {
   api: {
     bodyParser: false,
-  },
+  }
 };
 
 const parseForm = (req: NextApiRequest): Promise<{ fields: Fields; files: Files }> =>
@@ -32,69 +32,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { fields, files } = await parseForm(req);
-    console.log("Fields and files received:", { fields, files });
-
-    let conversation = fields.conversation 
-      ? JSON.parse(Array.isArray(fields.conversation) ? fields.conversation[0] : fields.conversation as string) 
-      : [];
-
     let imageUrl: string | null = null;
-    if (files.image) {
-      const file = Array.isArray(files.image) ? files.image[0] : files.image;
-      const tempPath = (file as any).filepath;
-      console.log("Handling image upload:", { originalFilename: file.originalFilename, tempPath });
+    let messages: any[] = [];
 
+    if (files.image) {
+      const file = files.image[0];
+      const tempPath = file.filepath;
       const uploadsDir = path.join(process.cwd(), "uploads");
       if (!fs.existsSync(uploadsDir)) {
-        console.log("Creating uploads directory:", uploadsDir);
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
-
       const fileExt = path.extname(file.originalFilename || ".jpg");
       const fileName = `upload-${Date.now()}${fileExt}`;
       const destPath = path.join(uploadsDir, fileName);
 
-      fs.copyFileSync(tempPath, destPath); // First, copy the file
-      fs.unlinkSync(tempPath);             // Then, delete the original file
+      fs.copyFileSync(tempPath, destPath);
+      fs.unlinkSync(tempPath);
 
-      const protocol = req.headers["x-forwarded-proto"] || "http";
-      const host = req.headers.host;
+      const protocol = req.headers['x-forwarded-proto'] || 'http';
+      const host = req.headers['host'];
       imageUrl = `${protocol}://ctbot.aiiot.center/uploads/${fileName}`;
-      console.log("Image URL generated:", imageUrl);
+      console.log("Image uploaded successfully:", imageUrl);
 
-      // Including image with high detail specification
-      conversation.push({
-        role: 'user', 
-        content: [
-                {type: "text", text: "What's in this image?"},
-                {
-                    type: "image_url",
-                    image_url: {
-                        url: {imageUrl},
-                        detail: "high",
-                    },
-                },
-            ],
+      messages.push({
+        role: "user",
+        content: {
+          type: "image_url",
+          image_url: {
+            url: imageUrl,
+            detail: "high"
+          }
+        }
       });
     }
 
-    const lastTwoMessages = conversation.slice(-2);
-
-    const openaiModule = require("openai");
-    const { Configuration, OpenAIApi } = openaiModule.default || openaiModule;
+    const openai = require("openai");
+    const { Configuration, OpenAIApi } = openai;
     const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
-    const openai = new OpenAIApi(configuration);
+    const client = new OpenAIApi(configuration);
 
-    const response = await openai.createChatCompletion({
+    const response = await client.createChatCompletion({
       model: "gpt-4o-mini",
-      messages: lastTwoMessages,
-      max_tokens: 300,
+      messages: messages,
+      max_tokens: 300
     });
 
-    console.log("Received response from OpenAI:", response.data);
-    res.status(200).json({ result: response.data.choices[0].message?.content || "No response from AI.", imageUrl });
-  } catch (error: any) {
+    res.status(200).json({ result: response.data.choices[0].message?.content, imageUrl });
+  } catch (error) {
     console.error("Error in API handler:", error);
-    res.status(500).json({ error: "Error processing request", details: error.response?.data || error.message || error });
+    res.status(500).json({ error: "Internal Server Error", details: error });
   }
 }
