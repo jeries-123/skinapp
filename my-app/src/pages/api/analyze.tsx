@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const destPath = path.join(uploadsDir, fileName);
       fs.copyFileSync(tempPath, destPath);
       fs.unlinkSync(tempPath);
-      imageUrl = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}/uploads/${fileName}`;
+      imageUrl = `${req.headers['x-forwarded-proto'] || 'http'}://$ctbot.aiiot.center/uploads/${fileName}`;
     }
 
     const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
