@@ -62,12 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       imageUrl = `${protocol}://ctbot.aiiot.center/uploads/${fileName}`;
       console.log("Image URL generated:", imageUrl);
 
-      conversation.push({
-        role: 'user', 
-        content: `Here is the radiology image for analysis: ${imageUrl} if its not health related image dont analyze it`, 
-        detail: "high"
-      });
+      conversation.push({ role: 'user', content: `Here is the radiology image for analysis: ${imageUrl}`, detail: "high" });
     }
+
     // Keep only the last two messages for context
     const lastTwoMessages = conversation.slice(-2);
 
