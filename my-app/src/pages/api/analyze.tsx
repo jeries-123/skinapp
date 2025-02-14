@@ -62,10 +62,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       imageUrl = `${protocol}://ctbot.aiiot.center/uploads/${fileName}`;
       console.log("Image URL generated:", imageUrl);
 
-      conversation.push({ role: 'user', content: `Here is the radiology image for analysis: ${imageUrl}`, detail: "high" });
+      // Including image with high detail specification
+      conversation.push({
+        role: 'user', 
+        content: `Here is the radiology image for analysis: ${imageUrl}`,
+        detail: "high"
+      });
     }
 
-    // Keep only the last two messages for context
     const lastTwoMessages = conversation.slice(-2);
 
     const openaiModule = require("openai");
@@ -74,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const openai = new OpenAIApi(configuration);
 
     const response = await openai.createChatCompletion({
-      model: "gpt-4o-mini",
+      model: "gpt-4",
       messages: lastTwoMessages,
       max_tokens: 300,
     });
